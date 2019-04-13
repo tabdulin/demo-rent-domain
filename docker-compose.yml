@@ -1,0 +1,21 @@
+version: "3.5"
+
+services:
+  demo-rent-db:
+    image: postgres:11
+    environment:
+      - POSTGRES_DB=${RENT_DB}
+      - POSTGRES_USER=${RENT_DB_USER}
+      - POSTGRES_PASSWORD=${RENT_DB_PASSWORD}
+    volumes:
+      - ./src/main/resources/rentdb.sql:/docker-entrypoint-initdb.d/rentdb.sql
+    ports:
+      - 5432:5432
+  demo-rent-schemaspy:
+    # TODO: fix tag, snapshot is used since latest has bugs for the postgresql 10+
+    image: schemaspy/schemaspy:snapshot
+    volumes:
+      - ./schema:/output
+    depends_on:
+      - demo-rent-db
+    command: "-t pgsql -host demo-rent-db -port 5432 -db ${RENT_DB} -u ${RENT_DB_USER} -p ${RENT_DB_PASSWORD} -s public"
